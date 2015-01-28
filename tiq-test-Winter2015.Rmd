@@ -6,7 +6,7 @@ output: html_document
 ---
 
 This is the companion R Markdown document to the following presentations that
-were delivered in Winter 2014-2015:
+were delivered in Winter 2015:
 
 - nbtcon 2014 
 
@@ -35,10 +35,6 @@ but the information in them cannot be shared publically as a part of this releas
 ```{r, message=FALSE}
 if (tiq.data.isDatasetAvailable("raw", "private1")) {
   print(tiq.data.getAvailableDates("raw", "private1"))
-}
-
-if (tiq.data.isDatasetAvailable("raw", "private2")) {
-  print(tiq.data.getAvailableDates("raw", "private2"))
 }
 ```
 
@@ -73,7 +69,8 @@ Here are some results of running the Novelty test on the inbound data:
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
 inbound.novelty = tiq.test.noveltyTest("public_inbound", "20141001", "20141130", 
                                 select.sources=c("alienvault", "blocklistde", 
-                                                 "dshield", "charleshaley"))
+                                                 "dshield", "charleshaley"),
+																			 .progress=FALSE)
 tiq.test.plotNoveltyTest(inbound.novelty)
 ```
 
@@ -82,7 +79,8 @@ And results running on the outbound data:
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
 outbound.novelty = tiq.test.noveltyTest("public_outbound", "20141001", "20141130", 
                                 select.sources=c("alienvault", "malwaregroup", 
-                                                 "malcode", "zeus"))
+                                                 "malcode", "zeus"),
+																			 .progress=FALSE)
 tiq.test.plotNoveltyTest(outbound.novelty)
 ```
 
@@ -155,12 +153,14 @@ tiq.test.plotAgingTest(private.aging, density.limit=0.7)
 
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
-private.novelty = tiq.test.noveltyTest("private1", "20141001", "20141130", split.tii=F)
+private.novelty = tiq.test.noveltyTest("private1", "20141001", "20141130", split.tii=F,
+																			 .progress=FALSE)
 tiq.test.plotNoveltyTest(private.novelty)
 ```
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
-outbound.novelty = tiq.test.noveltyTest("public_outbound", "20141001", "20141130",split.tii=F)
+outbound.novelty = tiq.test.noveltyTest("public_outbound", "20141001", "20141130",split.tii=F,
+																			 .progress=FALSE)
 tiq.test.plotNoveltyTest(outbound.novelty)
 ```
 
@@ -177,11 +177,4 @@ This is an example of applying the Overlap Test to our inbound dataset
                                  split.ti=F, select.sources=NULL)
   tiq.test.plotOverlapTest(overlap, title="OVERLAP - public_outbound VS private1 - 20141101")
 ```
-
-```{r, fig.height=10, fig.width=10, fig.align='center'}
-  overlap2 = tiq.test.overlapTest(c("public_outbound", "private2"), "20141115", "enriched", 
-                                 split.ti=F, select.sources=NULL)
-  tiq.test.plotOverlapTest(overlap2, title="OVERLAP - public_outbound VS private2 - 20141115")
-```
-
 
