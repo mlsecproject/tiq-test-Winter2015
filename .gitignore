@@ -9,3 +9,11 @@
 
 # RStudio files
 .Rproj.user/
+*.Rproj
+
+# Not sharing any private data, obviously
+data/enriched/private*
+data/raw/private*
+log/
+
+.Rproj.user
