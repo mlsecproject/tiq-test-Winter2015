@@ -119,25 +119,24 @@ of reported IP addresses on a specific date by Country
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
 outbound.aging = tiq.test.agingTest("public_outbound", "20141001", "20141130")
-tiq.test.plotAgingTest(outbound.aging)
+tiq.test.plotAgingTest(outbound.aging, title="Aging Test - Outbound Data")
 ```
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
 inbound.aging = tiq.test.agingTest("public_inbound", "20141001", "20141130")
-tiq.test.plotAgingTest(inbound.aging)
+tiq.test.plotAgingTest(inbound.aging, title="Aging Test - Inbound Data")
 ```
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
-outbound.aging = tiq.test.agingTest("public_outbound", "20141001", "20141130",
-                                    split.ti=F)
-tiq.test.plotAgingTest(outbound.aging)
+outbound.aging = tiq.test.agingTest("public_outbound", "20141001", "20141130", type="enriched",
+																		split.ti=F)
+tiq.test.plotAgingTest(outbound.aging, title="Aging Test - Outbound Data")
 ```
 
-
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
-private.aging = tiq.test.agingTest("private1", "20141001", "20141130",
+private.aging = tiq.test.agingTest("private1", "20141001", "20141130", type="enriched",
                                     split.ti=F)
-tiq.test.plotAgingTest(private.aging, density.limit=0.7)
+tiq.test.plotAgingTest(private.aging, title="Aging Test - Private Outbound Data", density.limit=0.7)
 ```
 
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
@@ -166,15 +165,62 @@ tiq.test.plotNoveltyTest(outbound.novelty)
 
 This is an example of applying the Overlap Test to our inbound dataset
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
-  overlap = tiq.test.overlapTest("public_inbound", "20141101", "enriched", 
-                                 select.sources=NULL)
-  overlap.plot = tiq.test.plotOverlapTest(overlap, title="Overlap Test - Inbound Data - 20141101")
-  print(overlap.plot)
+  overlap = tiq.test.overlapTest(c("public_outbound", "private1"), "20141101", "enriched", 
+                                 split.ti=c(T,F), select.sources=NULL)
+  tiq.test.plotOverlapTest(overlap, title="Overlap Test - public_outbound VS private1 - 20141101")
 ```
 
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
-  overlap = tiq.test.overlapTest(c("public_outbound", "private1"), "20141101", "enriched", 
-                                 split.ti=F, select.sources=NULL)
-  tiq.test.plotOverlapTest(overlap, title="OVERLAP - public_outbound VS private1 - 20141101")
+  overlap = tiq.test.overlapTest(c("public_outbound", "private1"), "20141101", "raw", 
+                                 split.ti=c(T,F), select.sources=NULL)
+  tiq.test.plotOverlapTest(overlap, title="Overlap Test - public_outbound VS private1 - 20141101")
 ```
 
+```{r, fig.height=10, fig.width=10, fig.align='center'}
+uniqueTest = rbind(
+	tiq.test.uniquenessTest("public_inbound", "20141001","20141001", "raw", split.tii = T),
+	tiq.test.uniquenessTest("public_inbound", "20141001","20141015", "raw", split.tii = T),
+	tiq.test.uniquenessTest("public_inbound", "20141001","20141030", "raw", split.tii = T),
+	tiq.test.uniquenessTest("public_inbound", "20141001","20141129", "raw", split.tii = T)
+)
+
+uniqueTest[count == 1]
+tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test - Inbound Data")
+```
+
+```{r, fig.height=10, fig.width=10, fig.align='center'}
+uniqueTest = rbind(
+	tiq.test.uniquenessTest("public_outbound", "20141001","20141001", "raw", split.tii = T),
+	tiq.test.uniquenessTest("public_outbound", "20141001","20141015", "raw", split.tii = T),
+	tiq.test.uniquenessTest("public_outbound", "20141001","20141030", "raw", split.tii = T),
+	tiq.test.uniquenessTest("public_outbound", "20141001","20141129", "raw", split.tii = T)
+)
+
+uniqueTest[count == 1]
+tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test - Outbound Data")
+```
+
+```{r, fig.height=10, fig.width=10, fig.align='center'}
+uniqueTest = rbind(
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141001", "raw", split.tii = c(T,F)),
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141015", "raw", split.tii = c(T,F)),
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141030", "raw", split.tii = c(T,F)),
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141129", "raw", split.tii = c(T,F))
+)
+
+uniqueTest[count == 1]
+tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test (raw) - Private Data vs. Outbound Data")
+```
+
+
+```{r, fig.height=10, fig.width=10, fig.align='center'}
+uniqueTest = rbind(
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141001", "enriched", split.tii = c(T,F)),
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141015", "enriched", split.tii = c(T,F)),
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141030", "enriched", split.tii = c(T,F)),
+	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141129", "enriched", split.tii = c(T,F))
+)
+
+uniqueTest[count == 1]
+tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test (enriched) - Private Data vs. Outbound Data")
+```
