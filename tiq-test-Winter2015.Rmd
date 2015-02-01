@@ -8,9 +8,17 @@ output: html_document
 This is the companion R Markdown document to the following presentations that
 were delivered in Winter 2015:
 
-- SANS CTI Summit 2015 
+* nbtcon 2014: "From Threat Intelligence to Defense Cleverness: A Data Science Approach"
+* SANS CTI Summit 2015: "From Threat Intelligence to Defense Cleverness: A Data Science Approach"
 
-Adding the TIQ-TEST functions
+This markdown file calculates the outputs and charts that are used on the presentations
+using the test data available. It is published in Rpubs [here](http://rpubs.com/alexcpsec/tiq-test-Winter2015)
+
+It should provide enough examples for usage of the tools implemented at TIQ-test.
+Please review our [github repository page](https://github.com/mlsecproject/tiq-test),
+report bugs and suggest features!
+
+## Adding the TIQ-TEST functions
 ```{r, message=FALSE}
 ## Some limitations from not being an R package: Setting the Working directory
 tiqtest.dir = file.path("..", "tiq-test")
@@ -29,14 +37,20 @@ print(tiq.data.getAvailableDates("raw", "public_outbound"))
 print(tiq.data.getAvailableDates("raw", "public_inbound"))
 ```
 
-This time, we also have a couple of private data feeds over some of this time,
-but the information in them cannot be shared publicly as a part of this release:
+This time, we also have a private data feeds over the time period,
+but the information in them cannot be shared publicly as a part of this release.
+If you are reproducing this at your own environemnt, you will not be able to 
+recreate some of the outputs below:
 
 ```{r, message=FALSE}
 if (tiq.data.isDatasetAvailable("raw", "private1")) {
   print(tiq.data.getAvailableDates("raw", "private1"))
+} else {
+	print("Sorry, private1 dataset is not available.")
 }
 ```
+
+# Data manipulation demonstration using TIQ-test
 
 This is an example of "RAW" (not enriched) outbound data imported from combine output
 ```{r, message=FALSE}
@@ -64,6 +78,8 @@ inbound.ti = tiq.data.loadTI("raw", "public_inbound", "20141101")
 unique(inbound.ti$source)
 ```
 
+# Novelty Test examples
+
 Here are some results of running the Novelty test on the inbound data:
 
 ```{r, fig.height=10, fig.width=12, fig.align='center', warning=FALSE}
@@ -84,48 +100,172 @@ outbound.novelty = tiq.test.noveltyTest("public_outbound", "20141001", "20141130
 tiq.test.plotNoveltyTest(outbound.novelty, title="Novelty Test - Outbound Indicators")
 ```
 
-## Overlap Test
+We can analyze the `public_outbound` dataset as a single unit as well, in order to
+compare it with other repositories:
+
+```{r, fig.height=10, fig.width=12, fig.align='center'}
+outbound.novelty = tiq.test.noveltyTest("public_outbound", "20141001", "20141130",
+																				split.tii=F, .progress=FALSE)
+tiq.test.plotNoveltyTest(outbound.novelty)
+```
+
+The same can be done ith the inbound indicators:
+
+```{r, fig.height=10, fig.width=12, fig.align='center'}
+inbound.novelty = tiq.test.noveltyTest("public_inbound", "20141001", "20141130",
+																				split.tii=F, .progress=FALSE)
+tiq.test.plotNoveltyTest(inbound.novelty)
+```
+
+And with private sources we may have available:
+
+```{r, fig.height=10, fig.width=12, fig.align='center'}
+if (tiq.data.isDatasetAvailable("raw", "private1")) {
+	private.novelty = tiq.test.noveltyTest("private1", "20141001", "20141130", 
+																				 split.tii=F, .progress=FALSE)
+	tiq.test.plotNoveltyTest(private.novelty)
+} else {
+	print("Sorry, private1 dataset is not available.")
+}
+```
+
+## Overlap Test examples
 
 This is an example of applying the Overlap Test to our inbound dataset
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
-  overlap = tiq.test.overlapTest("public_inbound", "20141101", "enriched", 
-                                 select.sources=NULL)
-  overlap.plot = tiq.test.plotOverlapTest(overlap, title="Overlap Test - Inbound Data - 20141101")
-  print(overlap.plot)
+overlap = tiq.test.overlapTest("public_inbound", "20141101", "enriched", 
+                               select.sources=NULL)
+tiq.test.plotOverlapTest(overlap, title="Overlap Test - Inbound Data - 20141101")
 ```
 
 Similarly, an example applying the Overlap Test to the outbound dataset
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
-  overlap = tiq.test.overlapTest("public_outbound", "20141101", "enriched", 
-                                 select.sources=NULL)
-  overlap.plot = tiq.test.plotOverlapTest(overlap, title="Overlap Test - Outbound Data - 20141101")
-  print(overlap.plot)
+overlap = tiq.test.overlapTest("public_outbound", "20141101", "enriched", 
+                               select.sources=NULL)
+tiq.test.plotOverlapTest(overlap, title="Overlap Test - Outbound Data - 20141101")
 ```
+
+We can use this function to compare our private dataset to each different source in
+our public outbound indicator libraries. This gives some interesting insight onto
+data it may be using from public sources
+
+```{r, fig.height=10, fig.width=10, fig.align='center'}
+overlap = tiq.test.overlapTest(c("public_outbound", "private1"), "20141101", "enriched", 
+                               split.ti=c(T,F), select.sources=NULL)
+tiq.test.plotOverlapTest(overlap, title="Overlap Test - public_outbound VS private1 - 20141101")
+```
+
+## Population Test Chart examples
 
 With the population data we can generate some plot to compare the top quantities
 of reported IP addresses on a specific date by Country
 
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
-  outbound.pop = tiq.test.extractPopulationFromTI("public_outbound", "country", 
-                                                  date = "20141111",
-                                                  select.sources=NULL, split.ti=F)
-  inbound.pop = tiq.test.extractPopulationFromTI("public_inbound", "country", 
-                                                 date = "20141111",
-                                                 select.sources=NULL, split.ti=F)
+outbound.pop = tiq.test.extractPopulationFromTI("public_outbound", "country", 
+                                                date = "20141111",
+                                                select.sources=NULL, split.ti=F)
+inbound.pop = tiq.test.extractPopulationFromTI("public_inbound", "country", 
+                                               date = "20141111",
+                                               select.sources=NULL, split.ti=F)
 
-  complete.pop = tiq.data.loadPopulation("mmgeo", "country")
-  tiq.test.plotPopulationBars(c(inbound.pop, outbound.pop, complete.pop), "country")
+complete.pop = tiq.data.loadPopulation("mmgeo", "country")
+tiq.test.plotPopulationBars(c(inbound.pop, outbound.pop, complete.pop), "country")
 ```
+
+We can use the same to compare our agregated outbound indicators against the
+private dataset we have:
+
+```{r, fig.height=10, fig.width=10, fig.align='center'}
+if (tiq.data.isDatasetAvailable("enriched", "private1")) {
+	outbound.pop = tiq.test.extractPopulationFromTI("public_outbound", "country", 
+	                                                date = "20141110",
+	                                                select.sources=NULL, split.ti=F)
+	private.pop = tiq.test.extractPopulationFromTI("private1", "country", 
+	                                               date = "20141110",
+	                                               select.sources=NULL, split.ti=F)
+	
+	tiq.test.plotPopulationBars(c(private.pop, outbound.pop), "country", 
+															title="Comparing Private1 and Public Feeds on 20141110")
+} else {
+	print("Sorry, private1 dataset is not available.")
+}
+```
+
+## Population Test Inference - Country data
+
+We can use some inference tools to get a better understanding if the volume of
+maliciousness we are seeing makes sense in relation to the population we consider
+to be our reference population.
+
+```{r}
+outbound.pop = tiq.test.extractPopulationFromTI("public_outbound", "country", 
+                                                date = "20141111",
+                                                select.sources=NULL,
+                                                split.ti=FALSE)
+complete.pop = tiq.data.loadPopulation("mmgeo", "country")
+tests = tiq.test.populationInference(complete.pop$mmgeo, 
+                                     outbound.pop$public_outbound, "country",
+                                     exact = TRUE, top=10)
+
+# Whose proportion is bigger than it should be?
+tests[p.value < 0.05/10 & conf.int.end > 0][order(conf.int.end, decreasing=T)]
+
+# Whose is smaller?
+tests[p.value < 0.05/10 & conf.int.start < 0][order(conf.int.start, decreasing=F)]
+
+# And whose is the same? ¯\_(ツ)_/¯
+tests[p.value > 0.05/10]
+```
+
+This tool also enables us to do trend comparison between the same TI groupings 
+from different days or between different groupings. A suggested usage is comparing
+the threat intelligence feeds you have against the population of confirmed attacks
+or firewall blocks you have in your environment.
+
+```{r}
+outbound.pop2 = tiq.test.extractPopulationFromTI("public_outbound", "country", 
+                                                 date = "20141112",
+                                                 select.sources=NULL,
+                                                 split.ti=FALSE)
+tests = tiq.test.populationInference(outbound.pop$public_outbound, 
+                                     outbound.pop2$public_outbound, "country",
+                                     exact = F, top=10)
+
+# Whose proportion is bigger than it should be?
+tests[p.value < 0.05/10 & conf.int.end > 0][order(conf.int.end, decreasing=T)]
+
+# Whose is smaller?
+tests[p.value < 0.05/10 & conf.int.start < 0][order(conf.int.start, decreasing=F)]
+
+# And whose is the same? ¯\_(ツ)_/¯
+tests[p.value > 0.05/10]
+```
+
+## Aging Test examples
+
+The aging test will try to identify how long a specific indicator has lived in a
+threat feed. As with other tests, like the population and novelty, you are able
+to measure this information on aggregate of all your subgroups or separately.
+
+Here is it run against the whole dataset on the Outbound indicators, as they are
+separated out on subgroups:
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
 outbound.aging = tiq.test.agingTest("public_outbound", "20141001", "20141130")
 tiq.test.plotAgingTest(outbound.aging, title="Aging Test - Outbound Data")
 ```
 
+Here is it run against the whole dataset on the Inbound indicators. It is interesting
+to observe how they have different distributions because of the different ways of collecting
+the data:
+
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
 inbound.aging = tiq.test.agingTest("public_inbound", "20141001", "20141130")
 tiq.test.plotAgingTest(inbound.aging, title="Aging Test - Inbound Data")
 ```
+
+You can also look at it as whole thing, as to evaluate the aging of your whole
+TI repository in its enriched format:
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
 outbound.aging = tiq.test.agingTest("public_outbound", "20141001", "20141130", type="enriched",
@@ -133,48 +273,24 @@ outbound.aging = tiq.test.agingTest("public_outbound", "20141001", "20141130", t
 tiq.test.plotAgingTest(outbound.aging, title="Aging Test - Outbound Data")
 ```
 
-```{r, fig.height=10, fig.width=12, fig.align='center'}
-private.aging = tiq.test.agingTest("private1", "20141001", "20141130", type="enriched",
-                                    split.ti=F)
-tiq.test.plotAgingTest(private.aging, title="Aging Test - Private Outbound Data", density.limit=0.7)
-```
-
-```{r, fig.height=10, fig.width=10, fig.align='center'}
-  outbound.pop = tiq.test.extractPopulationFromTI("public_outbound", "country", 
-                                                  date = "20141110",
-                                                  select.sources=NULL, split.ti=F)
-  private.pop = tiq.test.extractPopulationFromTI("private1", "country", 
-                                                 date = "20141110",
-                                                 select.sources=NULL, split.ti=F)
-
-  tiq.test.plotPopulationBars(c(private.pop, outbound.pop), "country", title="Comparing Private1 and Public Feeds on 20141110")
-```
-
+Which allows us to compare it against the same formatted data for the private dataset:
 
 ```{r, fig.height=10, fig.width=12, fig.align='center'}
-private.novelty = tiq.test.noveltyTest("private1", "20141001", "20141130", split.tii=F,
-																			 .progress=FALSE)
-tiq.test.plotNoveltyTest(private.novelty)
+if (tiq.data.isDatasetAvailable("enriched", "private1")) {
+	private.aging = tiq.test.agingTest("private1", "20141001", "20141130", type="enriched",
+	                                    split.ti=F)
+	tiq.test.plotAgingTest(private.aging, title="Aging Test - Private Outbound Data", density.limit=0.7)
+} else {
+	print("Sorry, private1 dataset is not available.")
+}
 ```
 
-```{r, fig.height=10, fig.width=12, fig.align='center'}
-outbound.novelty = tiq.test.noveltyTest("public_outbound", "20141001", "20141130",split.tii=F,
-																			 .progress=FALSE)
-tiq.test.plotNoveltyTest(outbound.novelty)
-```
+## Uniqueness Test examples
 
-This is an example of applying the Overlap Test to our inbound dataset
-```{r, fig.height=10, fig.width=10, fig.align='center'}
-  overlap = tiq.test.overlapTest(c("public_outbound", "private1"), "20141101", "enriched", 
-                                 split.ti=c(T,F), select.sources=NULL)
-  tiq.test.plotOverlapTest(overlap, title="Overlap Test - public_outbound VS private1 - 20141101")
-```
-
-```{r, fig.height=10, fig.width=10, fig.align='center'}
-  overlap = tiq.test.overlapTest(c("public_outbound", "private1"), "20141101", "raw", 
-                                 split.ti=c(T,F), select.sources=NULL)
-  tiq.test.plotOverlapTest(overlap, title="Overlap Test - public_outbound VS private1 - 20141101")
-```
+For the Uniqueness test examples, we are calculating the absolute uniqueness of the data
+on different data periods (1, 15, 30 and 60 days) to verify how this uniqueness evolves
+over time. By running the tests, we see that there is not a lot of variation in the
+ratio of uniqueness on inbound data:
 
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
 uniqueTest = rbind(
@@ -188,6 +304,8 @@ uniqueTest[count == 1]
 tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test - Inbound Data")
 ```
 
+Neither there is a lot of variation on outbound data:
+
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
 uniqueTest = rbind(
 	tiq.test.uniquenessTest("public_outbound", "20141001","20141001", "raw", split.tii = T),
@@ -200,27 +318,27 @@ uniqueTest[count == 1]
 tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test - Outbound Data")
 ```
 
-```{r, fig.height=10, fig.width=10, fig.align='center'}
-uniqueTest = rbind(
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141001", "raw", split.tii = c(T,F)),
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141015", "raw", split.tii = c(T,F)),
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141030", "raw", split.tii = c(T,F)),
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141129", "raw", split.tii = c(T,F))
-)
-
-uniqueTest[count == 1]
-tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test (raw) - Private Data vs. Outbound Data")
-```
-
+Also, adding the private data does not change the uniqueness ratios much further.
+Some work had been done previously on selecting the feeds for little overlap, and
+we can see that it paid off here.
 
 ```{r, fig.height=10, fig.width=10, fig.align='center'}
-uniqueTest = rbind(
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141001", "enriched", split.tii = c(T,F)),
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141015", "enriched", split.tii = c(T,F)),
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141030", "enriched", split.tii = c(T,F)),
-	tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141129", "enriched", split.tii = c(T,F))
-)
-
-uniqueTest[count == 1]
-tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test (enriched) - Private Data vs. Outbound Data")
+if (tiq.data.isDatasetAvailable("enriched", "private1")) {
+	uniqueTest = rbind(
+		tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141001",
+														"enriched", split.tii = c(T,F)),
+		tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141015",
+														"enriched", split.tii = c(T,F)),
+		tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141030",
+														"enriched", split.tii = c(T,F)),
+		tiq.test.uniquenessTest(c("public_outbound", "private1"), "20141001","20141129",
+														"enriched", split.tii = c(T,F))
+	)
+	uniqueTest[count == 1]
+	tiq.test.plotUniquenessTest(uniqueTest, title="Uniqueness Test (enriched) - Private Data vs. Outbound Data")
+} else {
+	print("Sorry, private1 dataset is not available.")
+}
 ```
+
+This finishes the analysis of this dataset. Feel free to suggest new tests and sources.
